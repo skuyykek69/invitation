@@ -1,71 +1,42 @@
-// snippet: replace or update bagian initialComentar() dan form submit handling
-    const initialComentar = async () => {
-        containerComentar.innerHTML = `<h1 style="font-size: 1rem; margin: auto">Loading...</h1>`;
-        peopleComentar.textContent = '...';
+// contents
+import {data} from "../assets/data/data.js";
+
+export const comentarService = {
+    getComentar: async function () {
+        try {
+            const response = await fetch(data.api);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Get error:', error);
+            return { error: error.message };
+        }
+    },
+
+    addComentar: async function ({id, name, status, message, date, color}) {
+        const comentar = { id, name, status, message, date, color };
 
         try {
-            const response = await comentarService.getComentar();
+            const response = await fetch(data.api, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                // remove mode: 'no-cors' so we can read the JSON response
+                body: JSON.stringify(comentar),
+            });
 
-            // jika service mengembalikan error, tampilkan pesan
-            if (response.error) {
-                containerComentar.innerHTML = `<p style="text-align:center">Gagal memuat komentar: ${response.error}</p>`;
-                peopleComentar.textContent = '—';
-                console.error('service error:', response.error);
-                return;
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            const { comentar } = response;
-            if (!Array.isArray(comentar)) {
-                containerComentar.innerHTML = `<p style="text-align:center">Tidak ada data komentar.</p>`;
-                peopleComentar.textContent = '0 Orang';
-                return;
-            }
+            return await response.json();
 
-            lengthComentar = comentar.length;
-            comentar.reverse();
-
-            if (comentar.length > 0) {
-                peopleComentar.textContent = `${comentar.length} Orang telah mengucapkan`;
-            } else {
-                peopleComentar.textContent = `Belum ada yang mengucapkan`;
-            }
-
-            pageNumber.textContent = '1';
-            renderElement(comentar.slice(startIndex, endIndex), containerComentar, listItemComentar);
         } catch (error) {
-            containerComentar.innerHTML = `<p style="text-align:center">Gagal memuat komentar: ${error.message}</p>`;
-            peopleComentar.textContent = '—';
-            console.error(error);
+            console.error('Post error:', error);
+            return { error: error.message };
         }
-    };
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        buttonForm.textContent = 'Loading...';
-
-        const comentar = {
-            id: generateRandomId(),
-            name: e.target.name.value,
-            status: e.target.status.value === 'y' ? 'Hadir' : 'Tidak Hadir',
-            message: e.target.message.value,
-            date: getCurrentDateTime(),
-            color: generateRandomColor(),
-        };
-
-        try {
-            const result = await comentarService.addComentar(comentar);
-
-            if (result && result.error) {
-                throw new Error(result.error);
-            }
-
-            // jika server mengembalikan sukses, reload komentar
-            await initialComentar();
-            form.reset();
-            buttonForm.textContent = 'Kirim';
-        } catch (error) {
-            console.error('submit error:', error);
-            buttonForm.textContent = 'Kirim';
-            alert('Gagal mengirim ucapan: ' + error.message);
-        }
-    });
+    },
+};
