@@ -13,9 +13,9 @@ export const wishas = () => {
     const wishasContainer = document.querySelector('.wishas');
     if (!wishasContainer) return;
 
-    // structure expected by the original markup
+    // locate DOM nodes according to repo's markup
     const [_, formWrapper] = wishasContainer.children[2].children;
-    const form = formWrapper; // original code used destructuring [_, form]
+    const form = formWrapper;
     const [peopleComentar, ___, containerComentar] = wishasContainer.children[3].children;
     const buttonForm = form.children[6];
     const pageNumber = wishasContainer.querySelector('.page-number');
@@ -104,6 +104,7 @@ export const wishas = () => {
             if (!Array.isArray(comentar)) {
                 containerComentar.innerHTML = `<p style="text-align:center">Tidak ada data komentar.</p>`;
                 peopleComentar.textContent = '0 Orang';
+                lengthComentar = 0;
                 return;
             }
 
@@ -160,7 +161,6 @@ export const wishas = () => {
     };
 
     nextButton.addEventListener('click', async () => {
-        // only go forward if there are more items
         if (endIndex < (lengthComentar || 0)) {
             currentPage++;
             startIndex = (currentPage - 1) * itemsPerPage;
@@ -198,6 +198,9 @@ export const wishas = () => {
 
             if (result && result.error) {
                 throw new Error(result.error);
+            }
+            if (result && result.status && result.status !== 200) {
+                throw new Error(result.message || 'Server menolak request');
             }
 
             // Success: reload comments and reset form
