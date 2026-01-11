@@ -2,7 +2,7 @@ export const data = {
     bride: {
         L: {
             id: 1,
-            name: 'Lorem Ipsum',
+            name: 'Lorem Isum',
             child: 'Putra ke lorem',
             father: 'Lorem',
             mother: 'Ipsum',
@@ -75,13 +75,13 @@ export const data = {
     bank: [
         {
             id: 1,
-            name: 'Lorem Ipsum',
+            name: 'Fajxx Onkx Harxxxx',
             icon: './src/assets/images/DANA.png',
             rekening: '087763082104'
         },
         {
             id: 2,
-            name: 'Ipsum Lorem',
+            name: 'Fajxx Onkx Harxxxx',
             icon: './src/assets/images/DANA.png',
             rekening: '087763082104'
         },
