@@ -1,4 +1,3 @@
-// contents
 import {data} from "../assets/data/data.js";
 
 export const comentarService = {
@@ -15,7 +14,7 @@ export const comentarService = {
         }
     },
 
-    addComentar: async function ({id, name, status, message, date, color}) {
+    addComentar: async function ({ id, name, status, message, date, color }) {
         const comentar = { id, name, status, message, date, color };
 
         try {
@@ -24,16 +23,23 @@ export const comentarService = {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                // remove mode: 'no-cors' so we can read the JSON response
+                // Do NOT use `mode: 'no-cors'` so the client can read the server response.
                 body: JSON.stringify(comentar),
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                // Try to provide helpful error info if there is a response body
+                const text = await response.text().catch(() => null);
+                throw new Error(`HTTP ${response.status}${text ? ': ' + text : ''}`);
             }
 
-            return await response.json();
-
+            // Some Google Apps Script deployments return JSON text; attempt to parse, but fallback to raw text
+            const text = await response.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                return { ok: true, raw: text };
+            }
         } catch (error) {
             console.error('Post error:', error);
             return { error: error.message };
