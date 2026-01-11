@@ -23,19 +23,19 @@ export const data = {
     time: {
         marriage: {
             year: '2030',
-            month: 'November',
-            date: '14',
-            day: 'Kamis',
+            month: 'Januari',
+            date: '30',
+            day: 'Rabu',
             hours: {
                 start: '08.00',
                 finish: 'Selesai'
             }
         },
         reception: {
-            year: '2024',
-            month: 'November',
-            date: '14',
-            day: 'Kamis',
+            year: '2030',
+            month: 'Januari',
+            date: '30',
+            day: 'Rabu',
             hours: {
                 start: '11.00',
                 finish: 'Selesai'
@@ -45,8 +45,8 @@ export const data = {
     },
 
     link: {
-        calendar: 'https://calendar.app.google/oSVLRMYC79GzuA4f9',
-        map: 'https://maps.app.goo.gl/q1Ask2Jgd4ekiiKBA',
+        calendar: 'https://calendar.app.google/mCTAub214HH3Aum36',
+        map: 'https://maps.app.goo.gl/KyXaBuDYCr2i9VVi6?g_st=aw',
     },
 
     galeri: [
@@ -77,19 +77,19 @@ export const data = {
             id: 1,
             name: 'Lorem Ipsum',
             icon: './src/assets/images/bca.png',
-            rekening: '12345678'
+            rekening: '087763082104'
         },
         {
             id: 2,
             name: 'Ipsum Lorem',
             icon: './src/assets/images/bri.png',
-            rekening: '12345678'
+            rekening: '087763082104'
         },
     ],
 
     audio: './src/assets/audio/wedding.mp3',
 
-    api: 'https://script.google.com/macros/s/AKfycbyydz6N4p2VWUG8zsXeURv6ap9RP8a4eC3x6N3x6qTDjMVr1cIBz9S0NsHw2rWvBOSXGg/exec',
+    api: 'https://script.google.com/macros/s/AKfycbxQmdnunRNAklnHKlCjO81JgIOihnFstvxKYPb2BaUImbTPOVSPcHpaf-ak38K3CpDD/exec',
 
     navbar: [
         {
