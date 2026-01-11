@@ -27,11 +27,76 @@ export const removeClassElement = (element, currentClass) => {
     element.classList.remove(currentClass);
 }
 
+/**
+ * formattedDate
+ * Input: date (can be Date object, ISO string, "YYYY-MM-DD HH:mm", "DD/MM/YYYY" etc.)
+ * Output: { days, hours, minutes, shortDate }
+ * - days/hours/minutes are numeric (0 or positive)
+ * - shortDate is string in format "D/M/YY" (used when days >= 1)
+ * If parsing fails, returns days/hours/minutes as NaN and shortDate empty.
+ */
 export const formattedDate = (date) => {
-    const d1 = new Date(date);
-    const d2 = new Date();
+    if (!date && date !== 0) {
+        return { days: NaN, hours: NaN, minutes: NaN, shortDate: '' };
+    }
 
-    const diffInMs = Math.abs(d2 - d1);
+    let parsed;
+
+    // If already a Date object
+    if (date instanceof Date) {
+        parsed = date;
+    } else if (typeof date === 'number') {
+        parsed = new Date(date);
+    } else if (typeof date === 'string') {
+        const s = date.trim();
+
+        // Try direct parsing first (handles ISO strings)
+        parsed = new Date(s);
+
+        // If invalid, try replacing space with 'T' and append 'Z' (common "YYYY-MM-DD HH:mm" case)
+        if (isNaN(parsed)) {
+            const t1 = s.replace(' ', 'T');
+            parsed = new Date(t1 + (t1.indexOf('T') !== -1 && !/[zZ]$/.test(t1) && !/[\+\-]\d{2}:?\d{2}$/.test(t1) ? 'Z' : ''));
+        }
+
+        // If still invalid, try to parse common dd/mm/yyyy or d/m/yy formats
+        if (isNaN(parsed)) {
+            const dm = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:[ T](\d{1,2}):(\d{2}))?/);
+            if (dm) {
+                let day = dm[1].padStart(2, '0');
+                let month = dm[2].padStart(2, '0');
+                let year = dm[3];
+                if (year.length === 2) year = '20' + year;
+                const hour = (dm[4] || '00').padStart(2, '0');
+                const minute = (dm[5] || '00').padStart(2, '0');
+                // construct ISO in UTC to avoid timezone ambiguity
+                parsed = new Date(`${year}-${month}-${day}T${hour}:${minute}:00Z`);
+            }
+        }
+
+        // If still invalid, try pattern YYYY/MM/DD or YYYY.MM.DD
+        if (isNaN(parsed)) {
+            const ymd = s.match(/^(\d{4})[\/\.\-](\d{1,2})[\/\.\-](\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?/);
+            if (ymd) {
+                const year = ymd[1];
+                const month = ymd[2].padStart(2, '0');
+                const day = ymd[3].padStart(2, '0');
+                const hour = (ymd[4] || '00').padStart(2, '0');
+                const minute = (ymd[5] || '00').padStart(2, '0');
+                parsed = new Date(`${year}-${month}-${day}T${hour}:${minute}:00Z`);
+            }
+        }
+    } else {
+        // unknown type
+        parsed = new Date(String(date));
+    }
+
+    if (!parsed || isNaN(parsed.getTime())) {
+        return { days: NaN, hours: NaN, minutes: NaN, shortDate: '' };
+    }
+
+    const now = new Date();
+    const diffInMs = Math.abs(now - parsed);
 
     const msInMinute = 60 * 1000;
     const msInHour = 60 * msInMinute;
@@ -41,11 +106,13 @@ export const formattedDate = (date) => {
     const hours = Math.floor((diffInMs % msInDay) / msInHour);
     const minutes = Math.floor((diffInMs % msInHour) / msInMinute);
 
-    return {
-        days: days,
-        hours: hours,
-        minutes: minutes
-    };
+    // shortDate formatted as D/M/YY (no leading zeros)
+    const d = parsed.getUTCDate();
+    const m = parsed.getUTCMonth() + 1;
+    const yy = String(parsed.getUTCFullYear()).slice(-2);
+    const shortDate = `${d}/${m}/${yy}`;
+
+    return { days, hours, minutes, shortDate };
 }
 
 export const formattedName = (name) => {
