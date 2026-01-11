@@ -11,7 +11,11 @@ import {comentarService} from "../services/comentarService.js";
 
 export const wishas = () => {
     const wishasContainer = document.querySelector('.wishas');
-    const [_, form] = wishasContainer.children[2].children;
+    if (!wishasContainer) return;
+
+    // structure expected by the original markup
+    const [_, formWrapper] = wishasContainer.children[2].children;
+    const form = formWrapper; // original code used destructuring [_, form]
     const [peopleComentar, ___, containerComentar] = wishasContainer.children[3].children;
     const buttonForm = form.children[6];
     const pageNumber = wishasContainer.querySelector('.page-number');
@@ -73,7 +77,12 @@ export const wishas = () => {
                  </li>`;
     };
 
+    // Pagination state
     let lengthComentar;
+    let itemsPerPage = 5;
+    let currentPage = 1;
+    let startIndex = 0;
+    let endIndex = itemsPerPage;
 
     const initialComentar = async () => {
         containerComentar.innerHTML = `<h1 style="font-size: 1rem; margin: auto">Loading...</h1>`;
@@ -82,7 +91,21 @@ export const wishas = () => {
 
         try {
             const response = await comentarService.getComentar();
-            const {comentar} = response;
+
+            if (response.error) {
+                containerComentar.innerHTML = `<p style="text-align:center">Gagal memuat komentar: ${response.error}</p>`;
+                peopleComentar.textContent = '—';
+                console.error('service error:', response.error);
+                return;
+            }
+
+            const { comentar } = response;
+
+            if (!Array.isArray(comentar)) {
+                containerComentar.innerHTML = `<p style="text-align:center">Tidak ada data komentar.</p>`;
+                peopleComentar.textContent = '0 Orang';
+                return;
+            }
 
             lengthComentar = comentar.length;
             comentar.reverse();
@@ -93,73 +116,52 @@ export const wishas = () => {
                 peopleComentar.textContent = `Belum ada yang mengucapkan`;
             }
 
-            pageNumber.textContent = '1';
+            currentPage = 1;
+            startIndex = 0;
+            endIndex = itemsPerPage;
+            pageNumber.textContent = currentPage.toString();
             renderElement(comentar.slice(startIndex, endIndex), containerComentar, listItemComentar);
         } catch (error) {
-            return `Error : ${error.message}`;
+            containerComentar.innerHTML = `<p style="text-align:center">Gagal memuat komentar: ${error.message}</p>`;
+            peopleComentar.textContent = '—';
+            console.error(error);
         }
     };
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        buttonForm.textContent = 'Loading...';
-
-        const comentar = {
-            id: generateRandomId(),
-            name: e.target.name.value,
-            status: e.target.status.value === 'y' ? 'Hadir' : 'Tidak Hadir',
-            message: e.target.message.value,
-            date: getCurrentDateTime(),
-            color: generateRandomColor(),
-        };
-
-        try {
-            const response = await comentarService.getComentar();
-
-            await comentarService.addComentar(comentar);
-
-            lengthComentar = response.comentar.length;
-
-            peopleComentar.textContent = `${++response.comentar.length} Orang telah mengucapkan`;
-            containerComentar.insertAdjacentHTML('afterbegin', listItemComentar(comentar));
-        } catch (error) {
-            return `Error : ${error.message}`;
-        } finally {
-            buttonForm.textContent = 'Kirim';
-            form.reset();
-        }
-    });
-
-    // click prev & next
-    let currentPage = 1;
-    let itemsPerPage = 4;
-    let startIndex = 0;
-    let endIndex = itemsPerPage;
-
     const updatePageContent = async () => {
-        containerComentar.innerHTML = '<h1 style="font-size: 1rem; margin: auto">Loading...</h1>';
-        pageNumber.textContent = '..';
         prevButton.disabled = true;
         nextButton.disabled = true;
-
+        containerComentar.innerHTML = `<h1 style="font-size: 1rem; margin: auto">Loading...</h1>`;
         try {
             const response = await comentarService.getComentar();
-            const {comentar} = response;
+
+            if (response.error) {
+                containerComentar.innerHTML = `<p style="text-align:center">Gagal memuat komentar: ${response.error}</p>`;
+                console.error('service error:', response.error);
+                return;
+            }
+
+            const { comentar } = response;
+            if (!Array.isArray(comentar)) {
+                containerComentar.innerHTML = `<p style="text-align:center">Tidak ada data komentar.</p>`;
+                return;
+            }
 
             comentar.reverse();
-
             renderElement(comentar.slice(startIndex, endIndex), containerComentar, listItemComentar);
             pageNumber.textContent = currentPage.toString();
         } catch (error) {
-            console.log(error);
+            containerComentar.innerHTML = `<p style="text-align:center">Gagal memuat komentar: ${error.message}</p>`;
+            console.error(error);
         } finally {
             prevButton.disabled = false;
             nextButton.disabled = false;
         }
-    }
+    };
 
     nextButton.addEventListener('click', async () => {
-        if (endIndex <= lengthComentar) {
+        // only go forward if there are more items
+        if (endIndex < (lengthComentar || 0)) {
             currentPage++;
             startIndex = (currentPage - 1) * itemsPerPage;
             endIndex = startIndex + itemsPerPage;
@@ -176,6 +178,41 @@ export const wishas = () => {
         }
     });
 
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        buttonForm.disabled = true;
+        const originalText = buttonForm.textContent;
+        buttonForm.textContent = 'Loading...';
+
+        const comentar = {
+            id: generateRandomId(),
+            name: e.target.name.value,
+            status: e.target.status.value === 'y' ? 'Hadir' : 'Tidak Hadir',
+            message: e.target.message.value,
+            date: getCurrentDateTime(),
+            color: generateRandomColor(),
+        };
+
+        try {
+            const result = await comentarService.addComentar(comentar);
+
+            if (result && result.error) {
+                throw new Error(result.error);
+            }
+
+            // Success: reload comments and reset form
+            await initialComentar();
+            form.reset();
+        } catch (error) {
+            console.error('submit error:', error);
+            alert('Gagal mengirim ucapan: ' + error.message);
+        } finally {
+            buttonForm.disabled = false;
+            buttonForm.textContent = originalText || 'Kirim';
+        }
+    });
+
+    // initialize
     initialComentar().then();
     initialBank();
 };
