@@ -13,7 +13,6 @@ export const wishas = () => {
     const wishasContainer = document.querySelector('.wishas');
     if (!wishasContainer) return;
 
-    // locate DOM nodes according to repo's markup
     const [_, formWrapper] = wishasContainer.children[2].children;
     const form = formWrapper;
     const [peopleComentar, ___, containerComentar] = wishasContainer.children[3].children;
@@ -54,17 +53,25 @@ export const wishas = () => {
 
     const listItemComentar = (data) => {
         const name = formattedName(data.name);
+
+        // use new robust formatter
         const newDate = formattedDate(data.date);
+
         let date = "";
 
-        if (newDate.days < 1) {
+        if (isNaN(newDate.days)) {
+            // parsing failed — show raw date string if available, fallback ke 'Beberapa waktu lalu'
+            date = data.date ? data.date : 'Beberapa waktu lalu';
+        } else if (newDate.days < 1) {
             if (newDate.hours < 1) {
                 date = `${newDate.minutes} menit yang lalu`;
             } else {
                 date = `${newDate.hours} jam, ${newDate.minutes} menit yang lalu`;
             }
         } else {
-            date = `${newDate.days} hari, ${newDate.hours} jam yang lalu`;
+            // show "X Hari yang lalu, D/M/YY"
+            // gunakan singular/plural tetap "Hari" (sesuai permintaan)
+            date = `${newDate.days} Hari yang lalu, ${newDate.shortDate}`;
         }
 
         return ` <li data-aos="zoom-in" data-aos-duration="1000">
