@@ -76,13 +76,13 @@ export const data = {
         {
             id: 1,
             name: 'Lorem Ipsum',
-            icon: './src/assets/images/bca.png',
+            icon: './src/assets/images/DANA.png',
             rekening: '087763082104'
         },
         {
             id: 2,
             name: 'Ipsum Lorem',
-            icon: './src/assets/images/bri.png',
+            icon: './src/assets/images/DANA.png',
             rekening: '087763082104'
         },
     ],
